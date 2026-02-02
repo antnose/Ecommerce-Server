@@ -15,12 +15,28 @@ func aboutHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "About page")
 }
 
+type Product struct {
+	ID          int     `json:"id"`
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
+	ImgUrl      string  `json:"imageUrl"`
+}
+
+var productList []Product
+
+// Get All Products
+func getProducts(w http.ResponseWriter, r *http.Request) {
+	handleCors(w)
+	handlePreflight(w, r)
+
+	sendData(w, productList, 200)
+}
+
+// Create Product
 func createProduct(w http.ResponseWriter, r *http.Request) {
 	handleCors(w)
-	if r.Method != http.MethodPost {
-		http.Error(w, "Please give me POST request", http.StatusBadRequest)
-		return
-	}
+	handlePreflight(w, r)
 
 	var newProduct Product
 	decoder := json.NewDecoder(r.Body)
@@ -35,54 +51,40 @@ func createProduct(w http.ResponseWriter, r *http.Request) {
 	newProduct.ID = len(productList) + 1
 	productList = append(productList, newProduct)
 
-	encoder := json.NewEncoder(w)
-	encoder.Encode(newProduct)
+	sendData(w, newProduct, 201)
 }
 
-type Product struct {
-	ID          int     `json:"id"`
-	Title       string  `json:"title"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	ImgUrl      string  `json:"imageUrl"`
-}
-
-var productList []Product
-
-func getProducts(w http.ResponseWriter, r *http.Request) {
-	handleCors(w)
-	if r.Method == http.MethodOptions {
-		w.WriteHeader(200)
-		return
-	}
-
-	if r.Method != http.MethodGet {
-		http.Error(w, "Please give me get request", http.StatusBadRequest)
-		return
-	}
-
-	w.WriteHeader(201)
-	encoder := json.NewEncoder(w)
-	encoder.Encode(productList)
-}
-
+// All Cors Method
 func handleCors(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Content-Type", "application/json")
+}
+
+// Handle Preflight Request
+func handlePreflight(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(200)
+	}
+}
+
+func sendData(w http.ResponseWriter, data interface{}, statusCode int) {
+	w.WriteHeader(statusCode)
+	encoder := json.NewEncoder(w)
+	encoder.Encode(data)
 }
 
 func main() {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/", handler)
+	mux.Handle("GET /hello", http.HandlerFunc(handler))
 
-	mux.HandleFunc("/about", aboutHandler)
+	mux.Handle("GET /about", http.HandlerFunc(aboutHandler))
 
-	mux.HandleFunc("/products", getProducts)
+	mux.Handle("GET /products", http.HandlerFunc(getProducts))
 
-	mux.HandleFunc("/create-products", createProduct)
+	mux.Handle("POST /create-products", http.HandlerFunc(createProduct))
 
 	fmt.Println("Server is running on port: 3000")
 
