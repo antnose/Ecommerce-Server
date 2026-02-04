@@ -1,27 +1,34 @@
 package cmd
 
 import (
-	"ecommerce/global_router"
+	"ecommerce/config"
 	"ecommerce/middleware"
 	"fmt"
 	"net/http"
+	"os"
+	"strconv"
 )
 
 func Serve() {
+	cnf := config.GetConfig()
 
 	manager := middleware.NewManager()
-
-	manager.Use(middleware.Logger, middleware.Hudai)
+	manager.Use(
+		middleware.Preflight,
+		middleware.Cors,
+		middleware.Logger,
+	)
 
 	mux := http.NewServeMux()
+	wrappedMux := manager.WrapMux(mux)
 
 	initRoutes(mux, manager)
 
-	globalRouter := global_router.GlobalRouter(mux)
-
 	fmt.Println("Server is running on port: 3000")
-	err := http.ListenAndServe(":3000", globalRouter)
+	addr := ":" + strconv.Itoa(cnf.HttpPort)
+	err := http.ListenAndServe(addr, mux)
 	if err != nil {
-		fmt.Println("Error starting server", err)
+		fmt.Println("Error starting server", wrappedMux)
+		os.Exit(1)
 	}
 }

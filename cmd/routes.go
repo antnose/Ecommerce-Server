@@ -8,7 +8,7 @@ import (
 
 func initRoutes(mux *http.ServeMux, manager *middleware.Manager) {
 	mux.Handle("GET /products",
-		middleware.Logger(
+		manager.With(
 			http.HandlerFunc(handlers.GetProducts),
 		),
 	)
