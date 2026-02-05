@@ -1,6 +1,6 @@
 package database
 
-var ProductList []Product
+var productList []Product
 
 type Product struct {
 	ID          int     `json:"id"`
@@ -8,6 +8,46 @@ type Product struct {
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
 	ImgUrl      string  `json:"imageUrl"`
+}
+
+func Store(p Product) Product {
+	p.ID = len(productList) + 1
+	productList = append(productList, p)
+	return p
+}
+
+func List() []Product {
+	return productList
+}
+
+func Get(productId int) *Product {
+	for _, product := range productList {
+		if product.ID == productId {
+			return &product
+		}
+	}
+
+	return nil
+}
+
+func Update(product Product) {
+	for idx, p := range productList {
+		if product.ID == p.ID {
+			productList[idx] = product
+		}
+	}
+}
+
+func Delete(productId int) {
+	var tempList []Product
+
+	for idx, p := range productList {
+		if productId != p.ID {
+			tempList[idx] = p
+		}
+	}
+
+	productList = tempList
 }
 
 func init() {
@@ -35,7 +75,7 @@ func init() {
 		ImgUrl:      "https://imgs.search.brave.com/cQjLAoBi6YOD42C2muCTwCSW037CcrlLavWpPaW0xeM/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9tZWRp/YS5pc3RvY2twaG90/by5jb20vaWQvMjE2/MjUyNTA0NC9waG90/by9zbWFsbC1yaXBl/LXRyb3BpY2FsLWx5/Y2hlZS1iZXJyaWVz/LWluLWEtbWluaW1h/bGlzdC1zdHlsZS1s/b3cta2V5LmpwZz9z/PTYxMng2MTImdz0w/Jms9MjAmYz1hLTZm/YmtxMFRISUVod2xy/VDVEMnI4eHdEb0hQ/MkZkMlVvYjVPbzNC/VGdZPQ",
 	}
 
-	ProductList = append(ProductList, prd1)
-	ProductList = append(ProductList, prd2)
-	ProductList = append(ProductList, prd3)
+	productList = append(productList, prd1)
+	productList = append(productList, prd2)
+	productList = append(productList, prd3)
 }
