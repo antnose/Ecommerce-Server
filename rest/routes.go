@@ -19,9 +19,17 @@ func initRoutes(mux *http.ServeMux, manager *middleware.Manager) {
 		),
 	)
 
-	mux.Handle("GET /products/{productId}",
+	mux.Handle("GET /products/{id}",
 		manager.With(
-			http.HandlerFunc(handlers.GetProductById),
+			http.HandlerFunc(handlers.GetProduct),
 		),
 	)
+
+	mux.Handle(
+		"PUT /products/{id}",
+		manager.With(
+			http.HandlerFunc(handlers.UpdateProduct),
+		),
+	)
+
 }
